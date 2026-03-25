@@ -79,7 +79,7 @@ Raw structured findings list for reference.
 ![UI Header](screenshots/ui/ui-header.png)
 
 ### Executive Summary
-![UI Executive Summary](screenshots/ui/ui-executive-summary.png)
+![UI Executive Summary](screenshots/ui/ui-exec-summary.png)
 
 ### Findings Cards
 ![UI Findings](screenshots/ui/ui-findings.png)
@@ -92,7 +92,7 @@ Raw structured findings list for reference.
 ![PDF Header](screenshots/pdf/pdf-header.png)
 
 ### Executive Summary
-![PDF Executive Summary](screenshots/pdf/pdf-executive-summary.png)
+![PDF Executive Summary](screenshots/pdf/pdf-exec-summary.png)
 
 ### Findings Cards
 ![PDF Findings](screenshots/pdf/pdf-findings.png)
@@ -116,13 +116,15 @@ PDF Export # DOMPDF render
 screenshots/
 ├── ui/
 │ ├── ui-header.png
-│ ├── ui-executive-summary.png
+│ ├── ui-exec-summary.png
 │ └── ui-findings.png
+  └── ui-insights.png
+  └── ui-appendix.png
 │
 └── pdf/
 ├── pdf-header.png
-├── pdf-executive-summary.png
-└── pdf-findings.png
+├── pdf-findings.png
+└── pdf-appendix.png
 ```
 
 ---
