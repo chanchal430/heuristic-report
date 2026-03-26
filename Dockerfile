@@ -24,6 +24,9 @@ RUN composer install --no-dev --optimize-autoloader
 RUN npm install
 RUN npm run build
 
+#  Create env
+RUN cp .env.example .env || true
+
 # Laravel setup
 RUN php artisan key:generate || true
 
@@ -35,4 +38,4 @@ RUN php artisan config:cache \
 
 EXPOSE 10000
 
-CMD php -S 0.0.0.0:10000 -t public
+CMD php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
