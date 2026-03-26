@@ -27,19 +27,12 @@ RUN npm run build
 # Laravel setup
 RUN php artisan key:generate || true
 
-
-# IMPORTANT: clear + cache configs (fixes HTTPS issues sometimes)
-RUN php artisan config:clear \
- && php artisan cache:clear \
- && php artisan view:clear \
- && php artisan route:clear
-
 # Optional: optimize (safe)
 RUN php artisan config:cache \
  && php artisan route:cache \
  && php artisan view:cache
 
- 
+
 EXPOSE 10000
 
 CMD php -S 0.0.0.0:10000 -t public
