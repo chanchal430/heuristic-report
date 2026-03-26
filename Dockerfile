@@ -2,11 +2,13 @@ FROM php:8.2-cli
 
 WORKDIR /app
 
-# Install system deps
+# Install system deps + Node
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
     libzip-dev \
+    nodejs \
+    npm \
     && docker-php-ext-install zip
 
 # Install composer
@@ -15,8 +17,12 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Copy project
 COPY . .
 
-# Install dependencies
+# Install PHP deps
 RUN composer install --no-dev --optimize-autoloader
+
+# 🔥 ADD THIS (VERY IMPORTANT)
+RUN npm install
+RUN npm run build
 
 # Laravel setup
 RUN php artisan key:generate || true
