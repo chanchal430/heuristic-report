@@ -73,6 +73,14 @@ class ReportBuilderService
                 'severity_distribution' => $severityCounts,
             ],
             'findings' => $structuredFindings,
+            'sections' => [
+                ['id' => 'metadata', 'label' => 'Overview', 'icon' => 'info'],
+                ['id' => 'overview', 'label' => 'Quick Overview', 'icon' => 'dashboard'],
+                ['id' => 'summary', 'label' => 'Executive Summary', 'icon' => 'description'],
+                ['id' => 'findings', 'label' => 'Findings', 'icon' => 'list_alt'],
+                ['id' => 'insights', 'label' => 'Insights', 'icon' => 'insights'],
+                ['id' => 'appendix', 'label' => 'Appendix', 'icon' => 'dataset'],
+            ]
         ];
     }
 

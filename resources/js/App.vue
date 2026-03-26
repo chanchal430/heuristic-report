@@ -1,34 +1,59 @@
 <template>
-  <div class="app-container">
-    <ReportHeader :reportData="reportData" @export-pdf="handleExportPdf" />
-    <main class="content-wrapper">
-      <QuickOverview v-if="reportData" :data="reportData" />
-      <ExecutiveSummary v-if="reportData" :data="reportData" />
-      <Filters v-if="reportData" :filters="filters" @update:filters="updateFilters" />
-      
-      <div class="findings-grid" v-if="filteredFindings.length">
-        <transition-group name="fade-slide" tag="div" class="findings-list">
-          <FindingCard 
-            v-for="finding in filteredFindings" 
-            :key="finding.id" 
-            :finding="finding" 
-            @view-details="openModal" 
-          />
-        </transition-group>
-      </div>
-      <div v-else-if="reportData" class="empty-state">
-        No findings match the current filters.
+  <div class="app-layout">
+    <SidebarNavigation 
+      :sections="reportData ? reportData.sections : []" 
+      :activeSection="activeSection"
+      @export-pdf="handleExportPdf"
+      @filter-severity="(sev) => updateFilters({ severity: sev })"
+    />
+    
+    <div class="main-container">
+      <div id="section-metadata">
+        <ReportHeader :reportData="reportData" @export-pdf="handleExportPdf" />
       </div>
 
-      <ReportConclusion v-if="reportData" />
-      <AppendixData v-if="reportData" :findings="reportData.findings" />
-    </main>
-    <Modal v-if="selectedFinding" :finding="selectedFinding" @close="selectedFinding = null" />
+      <main class="content-wrapper">
+        <div id="section-overview">
+          <QuickOverview v-if="reportData" :data="reportData" />
+        </div>
+        
+        <div id="section-summary">
+          <ExecutiveSummary v-if="reportData" :data="reportData" />
+        </div>
+
+        <Filters v-if="reportData" :filters="filters" @update:filters="updateFilters" />
+        
+        <div id="section-findings" class="findings-grid" v-if="filteredFindings.length">
+          <h2 class="section-title">Heuristic Findings</h2>
+          <transition-group name="fade-slide" tag="div" class="findings-list">
+            <FindingCard 
+              v-for="finding in filteredFindings" 
+              :key="finding.id" 
+              :finding="finding" 
+              @view-details="openModal" 
+            />
+          </transition-group>
+        </div>
+        <div v-else-if="reportData" class="empty-state">
+          No findings match the current filters.
+        </div>
+
+        <div id="section-insights">
+          <ReportConclusion v-if="reportData" />
+        </div>
+
+        <div id="section-appendix">
+          <AppendixData v-if="reportData" :findings="reportData.findings" />
+        </div>
+      </main>
+      <Modal v-if="selectedFinding" :finding="selectedFinding" @close="selectedFinding = null" />
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import SidebarNavigation from './components/SidebarNavigation.vue';
 import ReportHeader from './components/ReportHeader.vue';
 import QuickOverview from './components/QuickOverview.vue';
 import ExecutiveSummary from './components/ExecutiveSummary.vue';
@@ -39,6 +64,7 @@ import ReportConclusion from './components/ReportConclusion.vue';
 import AppendixData from './components/AppendixData.vue';
 
 const reportData = ref(null);
+const activeSection = ref('metadata');
 const rawPayload = ref({
   project_name: 'E-Commerce Checkout Redesign',
   evaluated_by: 'UX Team Alpha',
@@ -98,8 +124,12 @@ const fetchReportData = async () => {
     });
     if (response.ok) {
       reportData.value = await response.json();
+      console.log('Report data loaded:', reportData.value);
+      if (reportData.value.sections) {
+        console.log('Sections received for Sidebar:', reportData.value.sections);
+      }
     } else {
-      console.error('Failed to load report data');
+      console.error('Failed to load report data:', response.status);
     }
   } catch (err) {
     console.error('Error fetching report:', err);
@@ -131,21 +161,56 @@ const handleExportPdf = async () => {
   }
 };
 
+let observer = null;
+
 onMounted(() => {
   fetchReportData();
+  
+  // Intersection Observer for Scroll Spy
+  const options = {
+    root: null,
+    rootMargin: '-20% 0px -70% 0px',
+    threshold: 0
+  };
+
+  observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        activeSection.value = entry.target.id.replace('section-', '');
+      }
+    });
+  }, options);
+
+  // Observe all sections
+  setTimeout(() => {
+    ['metadata', 'overview', 'summary', 'findings', 'insights', 'appendix'].forEach(id => {
+      const el = document.getElementById('section-' + id);
+      if (el) observer.observe(el);
+    });
+  }, 1000);
+});
+
+onUnmounted(() => {
+  if (observer) observer.disconnect();
 });
 
 const filteredFindings = computed(() => {
   if (!reportData.value || !reportData.value.findings) return [];
   return reportData.value.findings.filter(f => {
-    const matchSeverity = !filters.value.severity || f.severity === filters.value.severity;
+    const matchSeverity = !filters.value.severity || 
+      f.severity.toLowerCase() === filters.value.severity.toLowerCase();
     const matchHeuristic = !filters.value.heuristic || f.heuristic_id === filters.value.heuristic;
     return matchSeverity && matchHeuristic;
   });
 });
 
 const updateFilters = (newFilters) => {
-  filters.value = { ...filters.value, ...newFilters };
+  // If clicking the same severity again, clear it (Toggle behavior)
+  if (newFilters.severity && filters.value.severity === newFilters.severity) {
+    filters.value.severity = '';
+  } else {
+    filters.value = { ...filters.value, ...newFilters };
+  }
 };
 
 const openModal = (finding) => {
@@ -176,19 +241,46 @@ body {
   background-color: var(--background-color);
   color: var(--text-primary);
   min-height: 100vh;
+  scroll-behavior: smooth;
 }
 
-.app-container {
-  max-width: 1200px;
+.app-layout {
+  display: flex;
+  gap: 2rem;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.5rem;
 }
 
-.content-wrapper {
-  margin-top: 2rem;
+.main-container {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  min-width: 0; /* Prevents overflow in flex items */
+}
+
+@media (max-width: 1024px) {
+  .app-layout {
+    flex-direction: column;
+    padding: 1rem;
+  }
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.section-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .findings-grid {

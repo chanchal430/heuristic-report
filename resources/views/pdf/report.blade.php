@@ -245,7 +245,7 @@
 
     <!-- ================= HEADER ================= -->
 
-    <div class="report-header">
+    <div id="section-metadata" class="report-header">
         <div class="header-title">
             {{ $report['metadata']['project_name'] }}
         </div>
@@ -258,11 +258,31 @@
             {{ $report['metadata']['date'] }}
         </div>
     </div>
+    
+    <!-- ================= TABLE OF CONTENTS ================= -->
+    <div style="margin: 40px 0; padding: 25px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h2 style="font-size: 20px; color: #0f172a; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #2563eb; padding-bottom: 10px; display: inline-block;">
+            Report Structure
+        </h2>
+        <div style="margin-top: 10px;">
+            @foreach($report['sections'] as $section)
+                <div style="margin-bottom: 12px; border-bottom: 1px dotted #cbd5e1; padding-bottom: 4px;">
+                    <a href="#section-{{ $section['id'] }}" style="text-decoration: none; color: #1e293b; font-size: 14px; display: block;">
+                        <span style="color: #2563eb; font-weight: bold; margin-right: 10px;">0{{ $loop->iteration }}</span>
+                        <span style="font-weight: 500;">{{ $section['label'] }}</span>
+                        <span style="float: right; color: #64748b; font-size: 11px;">→</span>
+                    </a>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    <div style="page-break-after: always;"></div>
 
 
     <!-- ================= SUMMARY ================= -->
 
-    <div class="summary-grid">
+    <div id="section-overview" class="summary-grid">
 
         <div class="stat-card">
             <div class="stat-label">Usability Score</div>
@@ -290,7 +310,7 @@
 
     <!-- ================= EXEC SUMMARY ================= -->
 
-    <div class="section-header">Executive Summary</div>
+    <div id="section-summary" class="section-header">Executive Summary</div>
 
     <table width="100%">
         <tr>
@@ -362,7 +382,7 @@
 
     <!-- ================= FINDINGS ================= -->
 
-    <div class="section-header">Detailed Findings</div>
+    <div id="section-findings" class="section-header">Detailed Findings</div>
 
     @foreach($report['findings'] as $finding)
 
@@ -404,9 +424,15 @@
     @endforeach
 
 
-    <!-- ================= APPENDIX ================= -->
+    <!-- ================= EVALUATOR INSIGHTS ================= -->
+    <div id="section-insights" class="section-header">Evaluator Insights</div>
+    <div class="key-box" style="margin-bottom: 25px;">
+        <p>The Heuristic Evaluation indicates that the system fundamentally satisfies most baseline usability standards, yet suffers from critical friction points in the primary user flow (e.g., checkout and error state recovery).</p>
+        <p>Immediate action should be prioritized for <strong>Critical</strong> and <strong>High</strong> severity issues, particularly addressing feedback delay and destructive action prevention. Resolving these will yield the highest return on investment in terms of user satisfaction and task completion rates.</p>
+    </div>
 
-    <div class="section-header">Appendix</div>
+    <!-- ================= APPENDIX ================= -->
+    <div id="section-appendix" class="section-header">Appendix</div>
 
     <table>
         <thead>
